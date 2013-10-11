@@ -1,0 +1,34 @@
+name:               nagios-status
+version:            0.1
+license:            BSD3
+license-file:       LICENSE
+copyright:          Copyright (c) 2013 Mike Maul
+author:             David Joyner <mike.maul@gmail.com>
+stability:          experimental
+tested-with:        GHC == 7.6.3
+synopsis:           Parsec Parser for Nagios status.dat file
+cabal-version:      >= 1.8
+homepage:           https://github.com/mmaul/nagios-status
+build-type:         Simple
+Extra-Source-Files: test/test1.hs
+description:        
+    Nagios collecta current state of checks in status.dat. This Parser
+    parses the status.dat file. See test/test1.hs for example
+ 
+source-repository head
+  type:             git
+  location:         git://github.com/mmaul/nagios-status
+
+
+Library
+    Build-Depends: 
+        base,
+        bytestring,
+        containers,
+        time >= 1.4, 
+        bindings-librrd ,
+        monads-tf,
+        parsec
+    Exposed-Modules:
+        NagiosStatus
+    Hs-Source-Dirs:       src
