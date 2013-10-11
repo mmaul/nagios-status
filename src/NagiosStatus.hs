@@ -54,44 +54,6 @@ type KV = Map.Map String String
 ----------------------
 -------- CODE --------
 ----------------------
-plainValue :: Parser String
-plainValue = many1 (noneOf " \n")
-
-bracketedValue :: Parser String
-bracketedValue = do
-    char '['
-    content <- many (noneOf "]")
-    char ']'
-    return content
-
-quotedValue :: Parser String
-quotedValue = do
-    char '"'
-    content <- many (noneOf "\"")
-    char '"'
-    return content
-
-logLine :: Parser LogLine
-logLine = do
-    ip <- plainValue
-    space -- parse and throw away a space
-    ident <- plainValue
-    space
-    user <- plainValue
-    space
-    date <- bracketedValue
-    space
-    req <- quotedValue
-    space
-    status <- plainValue
-    space
-    bytes <- plainValue
-    space
-    ref <- quotedValue
-    space
-    ua <- quotedValue
-    return $ LogLine ip ident user date req status bytes ref ua 
-
 section_open :: Parser String
 section_open = do
   sect <- many letter
@@ -111,8 +73,8 @@ eol = do
             return ()
      <?> "end of line"
 
-vchar           :: CharParser st Char
-vchar            = satisfy (\c -> (c >= chr 33) && (c <= chr 126))
+vchar :: CharParser st Char
+vchar = satisfy (\c -> (c >= chr 33) && (c <= chr 126))
                    <?> "printable character"
 
 -- Matches identifier of character|_
