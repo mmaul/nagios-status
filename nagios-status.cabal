@@ -19,7 +19,6 @@ source-repository head
   type:             git
   location:         git://github.com/mmaul/nagios-status
 
-
 Library
     Build-Depends: 
         base,
@@ -28,7 +27,37 @@ Library
         time >= 1.4, 
         bindings-librrd ,
         monads-tf,
-        parsec
+        text,
+        unordered-containers,
+        configurator,
+        parsec,
+        unix,
+        text-format
     Exposed-Modules:
-        NagiosStatus
+        NagiosStatus,
+        RRD
     Hs-Source-Dirs:       src
+
+Executable rrd-writer
+  hs-source-dirs:   src
+  main-is:          RRDWriter.hs
+  
+  ghc-options:      -O2 -Wall -fno-warn-missing-signatures
+  Build-Depends: 
+        base,
+        bytestring,
+        containers,
+        time >= 1.4, 
+        bindings-librrd ,
+        monads-tf,
+        transformers,
+        cmdargs,
+        system-filepath,
+        system-fileio,
+        fsnotify,
+        text,
+        unordered-containers,
+        configurator,
+        parsec,
+        unix,
+        text-format

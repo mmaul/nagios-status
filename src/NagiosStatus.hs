@@ -1,4 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+
+-- |
+-- Module      : NagiosStatus
+-- Copyright   : (c) Mike Maul 2013
+--
+-- License     : BSD3
+-- Maintainer  : mike.maul@gmail.com
+-- Stability   : experimental
+-- Portability : GHC
+
 module NagiosStatus (
                     Section(..),
                     block,
@@ -25,22 +35,11 @@ import System.Environment
 import Data.Char ( toUpper, chr, ord )
 import Control.Monad.Trans (liftIO)
 import Prelude
+
+import Config
 -----------------------
 -------- TYPES --------
 -----------------------
-
-data LogLine = LogLine {
-      getIP     :: String
-    , getIdent  :: String
-    , getUser   :: String
-    , getDate   :: String
-    , getReq    :: String
-    , getStatus :: String
-    , getBytes  :: String
-    , getRef    :: String
-    , getUA     :: String
-} deriving (Ord, Show, Eq)
-
 data Section = Info KV
   | ProgramStatus KV
   | HostStatus KV
@@ -134,11 +133,26 @@ readStatus fileName = do
   sections <-  (parseFromFile (many (block)) fileName)
   return sections
 
-performanceData:: Parser [(String,String)] 
-performanceData = do
-  ppd <- many item <* string ";;;" <* spaces
-  return (catMaybes ppd)
+(<++>) a b = (++) <$> a <*> b
+(<:>) a b = (:) <$> a <*> b
 
-parsePreformanceData::String->IO (Either ParseError [(String,String)])
+number = many1 digit
+
+plus = char '+' *> number
+
+minus = char '-' <:> number
+
+integer = plus <|> minus <|> number
+
+float = fmap rd $ integer <++> decimal <++> exponent
+    where rd       = read :: String -> Float
+          decimal  = option "" $ char '.' <:> number
+          exponent = option "" $ oneOf "eE" <:> integer
+-- over simplistic parsing of perfomance data
+-- need to handle other parameters like size
+performanceData:: Parser Float 
+performanceData = string "time=" *> float <* char 's' <* string ";;;" <* spaces 
+
+parsePreformanceData::String->IO (Either ParseError Float)
 parsePreformanceData d = do
   return $ parse performanceData "(data)" d
