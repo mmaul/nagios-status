@@ -116,7 +116,7 @@ main = do
   --print (maybeToList . resolveToRrdConfigs wc)
   let wd = O.fromText $ wcVar wc
       rrdMaps = getit wc "external" -- :: WriterConfig -> Text -> t -> Config.RrdConfigMap
-      checkMap = Map.empty -- ::Map.HashMap T.Text Int
+      checkMap = Map.fromList [((pack "-"),1)]--Map.empty -- ::Map.HashMap T.Text Int
   print wd
   man <- startManager
   watchTree man wd 
@@ -134,17 +134,24 @@ main = do
             hostName = hssHostName hss
             r = fromJust $ HMap.lookup (hssCheckCommand hss) rrdMaps
             lastLastCheck = Map.lookup hostName checkMap
-        when ((not (isJust lastLastCheck)) or (not ((fromJust lastLastCheck) == lastCheck)))
-             
-                print r
-                print v
-                updateRrd r (T.append hostName ".rrd") lastCheck v
-                (print hss) 
+        --if ((not (isJust lastLastCheck)) or (not ((fromJust lastLastCheck) == lastCheck)))
+        if (not (isJust lastLastCheck)) || (not $ (fromJust lastLastCheck) == lastCheck)
+            then do print r
+                    print v
+                    updateRrd r (T.append hostName ".rrd") lastCheck v
+            else do  
+               print ("Last check has not changed for " ++ (unpack hostName))
+               print lastCheck
+               --print (fromJust lastLastCheck)
+                --(print hss) 
                 --return hss
-        when ((isJust lastLastCheck) and ((fromJust lastLastCheck) == lastCheck))  
-            print ("Last check has not changed for " ++ (unpack hostName))
-            --return hs
-        1
+        -- when ((isJust lastLastCheck) and ((fromJust lastLastCheck) == lastCheck))  
+        --if (isJust lastLastCheck) 
+        --   then do
+        --        print "X" 
+        --    --print ("Last check has not changed for " ++ (unpack hostName))
+        --    --return hs
+            
         ) hs
       --print xs
       )
