@@ -30,6 +30,7 @@ import Config
 import Text.Parsec.Error
 import Data.Maybe
 import RRD
+--import Data.HashMap.Strict as Map
 -------------
 --- Types ---
 -------------
@@ -100,12 +101,12 @@ main :: IO ()
 main = do
   -- Process command line arguments
   !args <- processArgs argsMode
-  when (isJust $ lookup flHelp args) $ do
+  when (isJust $ Prelude.lookup flHelp args) $ do
     print $ helpText [] HelpFormatDefault argsMode
     exitSuccess
 
-  let debug      = isJust $ lookup flDebug args
-      configFile = case (lookup flConfig) args of
+  let debug      = isJust $ Prelude.lookup flDebug args
+      configFile = case (Prelude.lookup flConfig) args of
                      Just x -> x
                      Nothing -> error "Missing config file (-c)"
   -- Load the config file
@@ -115,6 +116,7 @@ main = do
   --print (maybeToList . resolveToRrdConfigs wc)
   let wd = O.fromText $ wcVar wc
       rrdMaps = getit wc "external" -- :: WriterConfig -> Text -> t -> Config.RrdConfigMap
+      checkMap = Map.empty -- ::Map.HashMap T.Text Int
   print wd
   man <- startManager
   watchTree man wd 
@@ -131,11 +133,19 @@ main = do
             v = round((hssPerformanceData hss) * 1000.0::Float)
             hostName = hssHostName hss
             r = fromJust $ HMap.lookup (hssCheckCommand hss) rrdMaps
-        (print r)
-        print v
-        updateRrd r (T.append hostName ".rrd") lastCheck v
-        (print hss) 
-        return hss) hs
+            lastLastCheck = Map.lookup hostName checkMap
+        when ((not (isJust lastLastCheck)) or (not ((fromJust lastLastCheck) == lastCheck)))
+             
+                print r
+                print v
+                updateRrd r (T.append hostName ".rrd") lastCheck v
+                (print hss) 
+                --return hss
+        when ((isJust lastLastCheck) and ((fromJust lastLastCheck) == lastCheck))  
+            print ("Last check has not changed for " ++ (unpack hostName))
+            --return hs
+        1
+        ) hs
       --print xs
       )
   print "press retrun to stop"
